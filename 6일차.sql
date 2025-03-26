@@ -457,19 +457,75 @@ SELECT * FROM emp2;
 --emp2 테이블 없어서 skip
 SELECT table_name FROM all_tables WHERE owner = 'SCOTT';
 SELECT table_name FROM user_tables;
+
 --한양 cu
 SELECT * FROM goods_tbl_500;
 SELECT * FROM store_tbl_500;
 SELECT * FROM sale_tbl_500 sale  --판매 취소된 것들만 계산
 WHERE sale.SALE_FG = 1;
 
+--상품목록    to_char() 포맷 기억하기
+SELECT to_char(goods_price,'999,999') ,to_char(in_date,'yyyy"년/"mm"월/"dd"일"')
+FROM GOODS_TBL_500;
+
+SELECT to_char(in_date,'yyyy"년/"mm"월/"dd"일"')
+FROM goods_tbl_500;
+
+
+
+
 --점포명/현금매출/카드매출/총매출
-SELECT srt.STORE_NM FROM STORE_TBL_500 srt 
+SELECT srt.STORE_NM 
+FROM STORE_TBL_500 srt 
 JOIN SALE_TBL_500 slt 
 ON srt.STORE_CD = slt.STORE_CD
 JOIN GOODS_TBL_500 gt 
 ON gt.GOODS_CD = slt.GOODS_CD
 GROUP BY srt.STORE_NM;
+-------------------------------------------------------------------------------------
+--교수님꺼
+--현금 => 현금&카드
+SELECT srt.STORE_NM ,slt.SALE_CNT * gt.GOODS_PRICE , slt.PAY_TYPE ,
+		decode(slt.PAY_TYPE,'01',slt.SALE_CNT * gt.GOODS_PRICE,0),
+		decode(slt.PAY_TYPE,'02',slt.SALE_CNT * gt.GOODS_PRICE,0)
+FROM STORE_TBL_500 srt 
+JOIN SALE_TBL_500 slt 
+ON srt.STORE_CD = slt.STORE_CD
+JOIN GOODS_TBL_500 gt 
+ON gt.GOODS_CD = slt.GOODS_CD;
+
+--현금 => 현금&카드&총합
+SELECT srt.STORE_NM ,slt.SALE_CNT * gt.GOODS_PRICE , slt.PAY_TYPE ,
+		decode(slt.PAY_TYPE,'01',slt.SALE_CNT * gt.GOODS_PRICE,0),
+		decode(slt.PAY_TYPE,'02',slt.SALE_CNT * gt.GOODS_PRICE,0),
+		slt.SALE_CNT * gt.GOODS_PRICE
+FROM STORE_TBL_500 srt 
+JOIN SALE_TBL_500 slt 
+ON srt.STORE_CD = slt.STORE_CD
+JOIN GOODS_TBL_500 gt 
+ON gt.GOODS_CD = slt.GOODS_CD;
+
+--현금 => 현금&카드&총합 => group by&rollup
+SELECT nvl(srt.STORE_NM,'총합') "점포명" ,
+		sum(decode(slt.PAY_TYPE,'01',slt.SALE_CNT * gt.GOODS_PRICE,0)) "현금결제",
+		sum(decode(slt.PAY_TYPE,'02',slt.SALE_CNT * gt.GOODS_PRICE,0)) "카드결제",
+		sum(slt.SALE_CNT * gt.GOODS_PRICE) "합계"
+FROM STORE_TBL_500 srt 
+JOIN SALE_TBL_500 slt 
+ON srt.STORE_CD = slt.STORE_CD
+JOIN GOODS_TBL_500 gt 
+ON gt.GOODS_CD = slt.GOODS_CD
+GROUP BY ROLLUP(srt.STORE_NM) ;
+
+--카드 
+SELECT srt.STORE_NM ,slt.SALE_CNT * gt.GOODS_PRICE , slt.PAY_TYPE ,
+		decode(slt.PAY_TYPE,'02',slt.SALE_CNT * gt.GOODS_PRICE,0)
+FROM STORE_TBL_500 srt 
+JOIN SALE_TBL_500 slt 
+ON srt.STORE_CD = slt.STORE_CD
+JOIN GOODS_TBL_500 gt 
+ON gt.GOODS_CD = slt.GOODS_CD;
+-------------------------------------------------------------------------------------
 
 --서브쿼리
 SELECT st.STORE_CD , 
@@ -482,8 +538,8 @@ WHERE st.SALE_FG ='1'
 GROUP BY st.STORE_CD;
 
 -- 1번 합체
-SELECT store.STORE_NM , nvl(merged.현금매출,0) "현금매출" , nvl(merged.카드매출,0) "카드매출", 
-		nvl(merged.현금매출,0)+nvl(merged.카드매출,0 ) "총합"
+SELECT store.STORE_NM "점포명", nvl(merged.현금매출,0) "현금매출" , nvl(merged.카드매출,0) "카드매출", 
+		nvl(merged.현금매출,0)+nvl(merged.카드매출,0 ) "총매출"
 FROM (SELECT st.STORE_CD , 
 		sum(decode(st.PAY_TYPE ,'01',nvl(gt.GOODS_PRICE,1) * nvl(st.SALE_CNT,1))) "현금매출",
 		sum(decode(st.PAY_TYPE,'02',nvl(gt.GOODS_PRICE,1) * nvl(st.SALE_CNT ,1))) "카드매출"
@@ -496,35 +552,43 @@ JOIN STORE_TBL_500 store
 ON store.STORE_CD = merged.STORE_CD;
 -------------------------------------------
 
+--2번 start
+SELECT * FROM sale_tbl_500 sale;
+SELECT * FROM goods_tbl_500;
+SELECT * FROM store_tbl_500;
+
 SELECT * FROM GOODS_TBL_500 gt
 JOIN SALE_TBL_500 st 
 ON gt.GOODS_CD = st.GOODS_CD
 WHERE st.SALE_FG ='1';
 
 
-SELECT * FROM sale_tbl_500 sale;
-SELECT * FROM goods_tbl_500;
-SELECT * FROM store_tbl_500;
-
---서브쿼리 완성
+--서브쿼리
 SELECT sale.SALE_NO "판매번호", 
 		sale.SALE_FG "판매구분", 
 		sale.SALE_YMD "판매일자", 
-		sale.SALE_CNT "판매수량",  --가격이랑 곱해서 판매금액으로
+		sale.SALE_CNT "판매수량",  --가격이랑 곱해서 판매금액으로 바꿀꺼임
 		sale.PAY_TYPE "수취구분",
-		sale.GOODS_CD "상품코드"  --상품명으로 교체
+		sale.GOODS_CD "상품코드" 
 FROM sale_tbl_500 sale
 WHERE sale.SALE_FG ='1' AND sale.PAY_TYPE = '02' AND sale.SALE_NO = '0001' OR sale.SALE_NO = '0004';
 
 --합체
-SELECT modi.판매구분,modi.판매번호,modi.판매일자,st.GOODS_NM "상품명",modi.판매수량,modi.판매수량 *st.GOODS_PRICE "판매금액",modi.수취구분
+SELECT decode(modi.판매구분,'1','판매') "판매구분",
+		modi.판매번호,
+		to_char(modi.판매일자,'yyyy-mm-dd') "판매일자",
+		st.GOODS_NM "상품명",
+		modi.판매수량,
+		modi.판매수량 *st.GOODS_PRICE "판매금액",
+		decode(modi.수취구분,'02','카드') "수취구분"
 FROM (SELECT sale.SALE_NO "판매번호", 
 		sale.SALE_FG "판매구분", 
 		sale.SALE_YMD "판매일자", 
-		sale.SALE_CNT "판매수량",  --가격이랑 곱해서 판매금액으로
+		sale.SALE_CNT "판매수량",
 		sale.PAY_TYPE "수취구분",
-		sale.GOODS_CD "상품코드"  --상품명으로 교체
+		sale.GOODS_CD "상품코드"
 	FROM sale_tbl_500 sale
-	WHERE sale.SALE_FG ='1' AND sale.PAY_TYPE = '02' AND sale.SALE_NO = '0001' OR sale.SALE_NO = '0004') modi
+	WHERE sale.SALE_FG ='1' AND sale.PAY_TYPE = '02' AND sale.SALE_NO = '0001' OR sale.SALE_NO = '0004'
+	) modi
 JOIN goods_TBL_500 st 
 ON modi.상품코드 = st.GOODS_CD;

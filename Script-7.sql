@@ -93,3 +93,127 @@ SELECT nvl(s.NAME,' ') stu_name, p.NAME prof_name FROM STUDENT s
 right OUTER JOIN PROFESSOR p 
 ON s.PROFNO = p.PROFNO;
 
+--cross join (자연조인)
+--join의 조건이 없는 조인 (on절이 없는 조인)
+SELECT * FROM TBL_TEST_ORDER tto 
+CROSS JOIN TBL_TEST_CUSTOMER ttc;
+-- n*n개가 만들어짐
+
+--self join
+SELECT * FROM emp;
+
+SELECT empno,ename,nvl(TO_CHAR(mgr),' ')
+FROM emp;
+
+SELECT b.empno,a.ename,nvl(TO_CHAR(a.mgr),' ')
+FROM emp a
+JOIN emp b
+ON a.mgr = b.EMPNO;
+
+--inner join(생략가능)
+--outer join -left outer right outer full outer
+--cross join
+--self join
+
+--배드민턴 예약프로그램
+--문제 조회만들기
+
+--254page 1,2,3,4
+
+--배드민턴
+SELECT * FROM TBL_CUST_202301 tc;
+SELECT * FROM TBL_RESV_202301 tr;
+SELECT * FROM TBL_COURT_202301 tc;
+
+--배드민턴 1번
+SELECT tc.CUST_NO , tc.CUST_NAME , count(tc.CUST_NO )
+FROM TBL_CUST_202301 tc
+JOIN TBL_RESV_202301 tr
+ON tc.CUST_NO = tr.CUST_NO
+GROUP BY tc.CUST_NO,tc.CUST_NAME;
+
+--배드민턴 2번
+SELECT 
+FROM TBL_CUST_202301 tc
+JOIN TBL_RESV_202301 tr
+ON tc.CUST_NO = tr.CUST_NO
+JOIN TBL_COURT_202301 tc
+ON tc.COURT_NO = tr.COURT_NO
+WHERE tc.COURT_NO = 'C005' AND tc.CUST_NAME = '김선수';
+
+
+--1번
+SELECT * FROM student;
+SELECT * FROM department;
+
+SELECT s.NAME stud_name, s.DEPTNO1 deptno1, d.DNAME dept_name
+FROM student s
+JOIN DEPARTMENT d
+ON d.DEPTNO = s.DEPTNO1;
+
+--2번
+SELECT * FROM Emp2;
+SELECT * FROM p_grade;
+
+SELECT e.NAME name, e."POSITION" , e.PAY , p.S_PAY "Low Pay" ,p.E_PAY "High Pay" 
+FROM EMP2 e JOIN P_GRADE p
+ON e."POSITION" = p."POSITION";
+
+--3번
+SELECT * FROM emp2;
+SELECT * FROM p_grade;
+
+SELECT name,to_char(sysdate,'yyyy') - to_char( e.BIRTHDAY ,'yyyy') - 12 AS age
+FROM emp2 e;
+
+SELECT e1.NAME , e1.AGE ,e1."POSITION" curr_position, p."POSITION"
+FROM (
+	SELECT name,
+			e."POSITION" ,
+			to_char(sysdate,'yyyy')-to_char(e.BIRTHDAY ,'yyyy')-12 AS age
+	FROM emp2 e
+	) e1
+left OUTER JOIN P_GRADE p
+ON e1.AGE BETWEEN p.S_AGE AND p.E_AGE
+ORDER BY AGE ;
+
+
+--4번
+SELECT * FROM customer;
+SELECT * FROM gift;
+
+SELECT COLUMN_NAME, DATA_TYPE, NULLABLE
+FROM ALL_TAB_COLUMNS
+WHERE TABLE_NAME = 'CUSTOMER';
+
+SELECT COLUMN_NAME, DATA_TYPE, NULLABLE
+FROM ALL_TAB_COLUMNS
+WHERE TABLE_NAME = 'GIFT';
+
+SELECT c.GNAME cust_name, c.POINT point, g.GNAME gift_name
+FROM customer c
+JOIN gift g
+ON c.POINT >= g.G_start
+WHERE g.GNAME = 'Notebook';
+
+SELECT c.GNAME cust_name, c.POINT point, g.GNAME gift_name
+FROM customer c
+JOIN gift g
+ON g.GNAME = 'Notebook'
+WHERE c.POINT >= 600000 AND c.POINT <= 700000 or c.POINT >= 900000;
+
+SELECT c.GNAME cust_name, c.POINT point, g.GNAME gift_name
+FROM customer c
+JOIN gift g
+ON g.GNAME = 'Notebook'
+WHERE c.POINT BETWEEN g.G_START AND g.G_END  or c.POINT >= 900000
+GROUP BY c.GNAME,c.POINT, g.GNAME;
+
+  select  c.gname, c.point , g.gname
+    from customer c
+    join gift g
+    on g.g_start <= c.point
+    where g.gname= 'Notebook';
+
+
+
