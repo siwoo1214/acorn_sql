@@ -461,7 +461,7 @@ SELECT table_name FROM user_tables;
 --한양 cu
 SELECT * FROM goods_tbl_500;
 SELECT * FROM store_tbl_500;
-SELECT * FROM sale_tbl_500 sale  --판매 취소된 것들만 계산
+SELECT * FROM sale_tbl_500 sale;  --판매 취소된 것들만 계산
 WHERE sale.SALE_FG = 1;
 
 --상품목록    to_char() 포맷 기억하기

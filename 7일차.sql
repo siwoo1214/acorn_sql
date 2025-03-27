@@ -178,6 +178,28 @@ ON e1.AGE BETWEEN p.S_AGE AND p.E_AGE
 ORDER BY AGE ;
 
 
+--교수님 풀이
+SELECT * FROM p_grade;
+
+SELECT trunc(MONTHS_BETWEEN(sysdate, to_date('1985-12-10'))/12 )FROM dual;
+
+SELECT name,birthday,trunc(MONTHS_BETWEEN(sysdate, to_date('1985-12-10'))/12 )
+FROM emp2;
+
+SELECT name,g."POSITION" ,trunc(MONTHS_BETWEEN(sysdate, to_date('1985-12-10'))/12 )
+FROM emp2 e
+JOIN P_GRADE g 
+ON trunc(MONTHS_BETWEEN(sysdate, to_date('1985-12-10'))/12 ) BETWEEN g.s_age AND g.e_age;
+
+SELECT *
+FROM (
+	SELECT name,
+		trunc(MONTHS_BETWEEN(sysdate, to_date('1985-12-10'))/12 ) AS age
+		FROM emp2
+	) A
+	JOIN p_grade G
+	ON A.age BETWEEN g.s_age AND g.e_age;
+
 --4번
 SELECT * FROM customer;
 SELECT * FROM gift;
@@ -200,20 +222,13 @@ SELECT c.GNAME cust_name, c.POINT point, g.GNAME gift_name
 FROM customer c
 JOIN gift g
 ON g.GNAME = 'Notebook'
-WHERE c.POINT >= 600000 AND c.POINT <= 700000 or c.POINT >= 900000;
+WHERE c.POINT BETWEEN g.G_START AND g.G_END  or c.POINT >= 900000;
 
-SELECT c.GNAME cust_name, c.POINT point, g.GNAME gift_name
-FROM customer c
-JOIN gift g
-ON g.GNAME = 'Notebook'
-WHERE c.POINT BETWEEN g.G_START AND g.G_END  or c.POINT >= 900000
-GROUP BY c.GNAME,c.POINT, g.GNAME;
-
-  select  c.gname, c.point , g.gname
-    from customer c
-    join gift g
-    on g.g_start <= c.point
-    where g.gname= 'Notebook';
+--교수님 풀이
+-- customer 테이블 고객정보 - 적립포인트
+-- 적립된 포인트보다 낮은거 중에서 노트북을 받을 수 있는 사람 조회하시오
+SELECT * FROM customer;
+SELECT * FROM gift;
 
 
 
